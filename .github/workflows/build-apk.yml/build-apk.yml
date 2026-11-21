@@ -1,0 +1,47 @@
+
+name: สร้าง KAO FF LOGGER APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ดาวน์โหลดโปรเจกต์
+        uses: actions/checkout@v4
+
+      - name: ติดตั้ง Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: ตั้งค่า Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: ติดตั้ง Android SDK
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: แตกไฟล์โปรเจกต์
+        run: |
+          ZIP_FILE=$(find . -maxdepth 1 -name '*.zip' | head -n 1)
+          unzip -o "$ZIP_FILE" -d .
+
+      - name: สร้าง APK
+        uses: gradle/gradle-build-action@v3
+        with:
+          gradle-version: '8.9'
+          arguments: assembleDebug
+
+      - name: ดาวน์โหลด APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: KAO-FF-LOGGER-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
